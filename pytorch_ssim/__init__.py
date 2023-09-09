@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -63,6 +64,8 @@ class SSIM(torch.nn.Module):
         return _ssim(img1, img2, window, self.window_size, channel, self.size_average)
 
 def ssim(img1, img2, window_size = 11, size_average = True):
+    img1=torch.clamp(img1,min=0,max=1)
+    img2=torch.clamp(img2,min=0,max=1)
     (_, channel, _, _) = img1.size()
     window = create_window(window_size, channel)
     
@@ -71,3 +74,12 @@ def ssim(img1, img2, window_size = 11, size_average = True):
     window = window.type_as(img1)
     
     return _ssim(img1, img2, window, window_size, channel, size_average)
+
+def psnr(pred, gt):
+    pred=pred.clamp(0,1).cpu().numpy()
+    gt=gt.clamp(0,1).cpu().numpy()
+    imdff = pred - gt
+    rmse = math.sqrt(np.mean(imdff ** 2))
+    if rmse == 0:
+        return 100
+    return 20 * math.log10( 1.0 / rmse)
